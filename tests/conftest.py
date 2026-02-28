@@ -22,6 +22,9 @@ def _make_kalshi_trades() -> pd.DataFrame:
     7 price levels x 3 variants x 100 copies.  The 100-copy multiplier
     ensures analyses with minimum-sample thresholds (e.g. StatisticalTestsAnalysis
     requires >= 100 per price bin) don't hit empty-DataFrame edge cases.
+
+    Trades are spread over 100 days starting 2024-01-01 so that time-based
+    analyses (including walk-forward backtests) have sufficient date range.
     """
     rows = []
     prices = [10, 20, 30, 50, 60, 70, 90]
@@ -31,9 +34,9 @@ def _make_kalshi_trades() -> pd.DataFrame:
         ("MKT-B", "yes", lambda p: p, lambda p: 100 - p, 3),
     ]
     trade_id = 0
-    base_time = pd.Timestamp("2024-06-01 12:00:00")
+    base_time = pd.Timestamp("2024-01-01 12:00:00")
 
-    for _ in range(100):
+    for copy_idx in range(100):
         for price in prices:
             for ticker, taker_side, yes_fn, no_fn, count in variants:
                 trade_id += 1
@@ -45,7 +48,7 @@ def _make_kalshi_trades() -> pd.DataFrame:
                         "yes_price": yes_fn(price),
                         "no_price": no_fn(price),
                         "taker_side": taker_side,
-                        "created_time": base_time + pd.Timedelta(minutes=trade_id),
+                        "created_time": base_time + pd.Timedelta(days=copy_idx, minutes=trade_id % 1440),
                         "_fetched_at": base_time,
                     }
                 )
@@ -63,6 +66,10 @@ def _make_kalshi_markets() -> pd.DataFrame:
                 "result": "yes",
                 "volume": 1000,
                 "event_ticker": "INXD-24JAN01",
+                "close_time": pd.Timestamp("2024-07-15 12:00:00"),
+                "open_time": pd.Timestamp("2024-01-01 00:00:00"),
+                "created_time": pd.Timestamp("2024-01-01 00:00:00"),
+                "last_price": 65,
             },
             {
                 "ticker": "MKT-B",
@@ -70,6 +77,10 @@ def _make_kalshi_markets() -> pd.DataFrame:
                 "result": "no",
                 "volume": 2000,
                 "event_ticker": "NFLGAME-25FEB01",
+                "close_time": pd.Timestamp("2024-08-01 18:00:00"),
+                "open_time": pd.Timestamp("2024-02-01 00:00:00"),
+                "created_time": pd.Timestamp("2024-02-01 00:00:00"),
+                "last_price": 40,
             },
         ]
     )
