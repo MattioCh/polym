@@ -21,17 +21,31 @@ def analyze(name: str | None = None):
 
     output_dir = Path("output")
 
+    animated = [a for a in analyses if "animated" in a.__module__]
+    static = [a for a in analyses if "animated" not in a.__module__]
+
     # If name provided, run that specific analysis
     if name:
         if name == "all":
-            print("\nRunning all analyses...\n")
-            for analysis_cls in analyses:
+            print("\nRunning all static analyses...\n")
+            for analysis_cls in static:
                 instance = analysis_cls()
                 print(f"Running: {instance.name}")
-                saved = instance.save(output_dir, formats=["png", "pdf", "csv", "json", "gif"])
+                saved = instance.save(output_dir, formats=["png", "pdf", "csv", "json"])
                 for fmt, path in saved.items():
                     print(f"  {fmt}: {path}")
-            print("\nAll analyses complete.")
+            print("\nAll static analyses complete.")
+            return
+
+        if name == "all-animated":
+            print("\nRunning all animated analyses...\n")
+            for analysis_cls in animated:
+                instance = analysis_cls()
+                print(f"Running: {instance.name}")
+                saved = instance.save(output_dir)
+                for fmt, path in saved.items():
+                    print(f"  {fmt}: {path}")
+            print("\nAll animated analyses complete.")
             return
 
         # Find matching analysis
@@ -53,7 +67,7 @@ def analyze(name: str | None = None):
         sys.exit(1)
 
     # Interactive menu mode
-    options = ["[All] Run all analyses"]
+    options = ["[All] Run all static analyses", "[All Animated] Run all animated analyses"]
     for analysis_cls in analyses:
         instance = analysis_cls()
         options.append(f"{snake_to_title(instance.name)}: {instance.description}")
@@ -72,18 +86,28 @@ def analyze(name: str | None = None):
         return
 
     if choice == 0:
-        # Run all analyses
-        print("\nRunning all analyses...\n")
-        for analysis_cls in analyses:
+        # Run all static analyses
+        print("\nRunning all static analyses...\n")
+        for analysis_cls in static:
             instance = analysis_cls()
             print(f"Running: {instance.name}")
-            saved = instance.save(output_dir, formats=["png", "pdf", "csv", "json", "gif"])
+            saved = instance.save(output_dir, formats=["png", "pdf", "csv", "json"])
             for fmt, path in saved.items():
                 print(f"  {fmt}: {path}")
-        print("\nAll analyses complete.")
+        print("\nAll static analyses complete.")
+    elif choice == 1:
+        # Run all animated analyses
+        print("\nRunning all animated analyses...\n")
+        for analysis_cls in animated:
+            instance = analysis_cls()
+            print(f"Running: {instance.name}")
+            saved = instance.save(output_dir)
+            for fmt, path in saved.items():
+                print(f"  {fmt}: {path}")
+        print("\nAll animated analyses complete.")
     else:
         # Run selected analysis
-        analysis_cls = analyses[choice - 1]
+        analysis_cls = analyses[choice - 2]
         instance = analysis_cls()
         print(f"\nRunning: {instance.name}\n")
         saved = instance.save(output_dir, formats=["png", "pdf", "csv", "json", "gif"])
