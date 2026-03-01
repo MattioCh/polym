@@ -79,8 +79,9 @@ class PortfolioReporter:
         unrealised = 0.0
         for pos in self.open_positions:
             snap = snap_map.get(pos.ticker)
-            if snap is not None and snap.mid_price is not None:  # type: ignore[union-attr]
-                unrealised += pos.unrealised_pnl(int(round(snap.mid_price)))  # type: ignore[union-attr]
+            mid_price = getattr(snap, "mid_price", None) if snap is not None else None
+            if mid_price is not None:
+                unrealised += pos.unrealised_pnl(int(round(mid_price)))
 
         # Closed positions
         realised = 0.0

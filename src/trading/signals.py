@@ -29,7 +29,6 @@ Usage
 from __future__ import annotations
 
 from collections import deque
-from datetime import datetime, timezone
 
 from src.trading.models import MarketSnapshot, TakerSignal
 
@@ -121,8 +120,6 @@ class MeanReversionSignal:
         if snap.spread is None or snap.spread < self.min_spread:
             return None
 
-        now = datetime.now(tz=timezone.utc)
-
         if z > self.threshold:
             # Price is high → sell YES at yes_bid + 1 (just inside ask)
             limit_price = max(1, min(99, (snap.yes_bid or 1) + 1))
@@ -133,7 +130,7 @@ class MeanReversionSignal:
                 limit_price=limit_price,
                 current_price=mid,
                 z_score=round(z, 3),
-                timestamp=now,
+                timestamp=snap.timestamp,
             )
         else:
             # Price is low → buy YES at yes_ask - 1 (just inside bid)
@@ -145,5 +142,5 @@ class MeanReversionSignal:
                 limit_price=limit_price,
                 current_price=mid,
                 z_score=round(z, 3),
-                timestamp=now,
+                timestamp=snap.timestamp,
             )

@@ -135,7 +135,7 @@ class PositionManager:
         rows = []
         for pos in self._positions.values():
             snap = (snapshot_map or {}).get(pos.ticker)
-            current_price: float | None = snap.mid_price if snap is not None else None  # type: ignore[union-attr]
+            current_price: float | None = getattr(snap, "mid_price", None) if snap is not None else None
             upnl_cents: float | None = None
             if current_price is not None:
                 upnl_cents = pos.unrealised_pnl(int(round(current_price)))
